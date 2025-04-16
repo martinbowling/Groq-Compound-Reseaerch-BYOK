@@ -423,3 +423,31 @@ export const getResearchReport = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Failed to get research report' });
   }
 };
+
+export const deleteResearch = async (req: Request, res: Response) => {
+  try {
+    const { queryId } = req.params;
+    
+    // Check if research query exists
+    const researchQuery = await storage.getResearchQuery(queryId);
+    if (!researchQuery) {
+      return res.status(404).json({ error: 'Research query not found' });
+    }
+    
+    // If research is active, remove it from memory
+    if (activeResearch.has(queryId)) {
+      activeResearch.delete(queryId);
+    }
+    
+    // Delete research steps first (due to foreign key constraints)
+    await storage.deleteResearchSteps(queryId);
+    
+    // Then delete the research query
+    await storage.deleteResearchQuery(queryId);
+    
+    return res.status(200).json({ message: 'Research deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting research:', error);
+    return res.status(500).json({ error: 'Failed to delete research' });
+  }
+};

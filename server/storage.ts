@@ -18,11 +18,13 @@ export interface IStorage {
   updateResearchQueryStatus(queryId: string, status: string): Promise<void>;
   updateResearchQueryTitle(queryId: string, title: string): Promise<void>;
   completeResearchQuery(queryId: string): Promise<void>;
+  deleteResearchQuery(queryId: string): Promise<void>;
   listResearchQueries(limit: number, offset: number): Promise<ResearchQuery[]>;
   countResearchQueries(): Promise<number>;
   
   addResearchStep(step: InsertResearchStep): Promise<ResearchStep>;
   getResearchSteps(queryId: string): Promise<ResearchStep[]>;
+  deleteResearchSteps(queryId: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -98,6 +100,16 @@ export class DbStorage implements IStorage {
       count: sql`count(*)`
     }).from(researchQueries);
     return parseInt(result[0].count as string);
+  }
+  
+  async deleteResearchQuery(queryId: string): Promise<void> {
+    await db.delete(researchQueries)
+      .where(eq(researchQueries.queryId, queryId));
+  }
+  
+  async deleteResearchSteps(queryId: string): Promise<void> {
+    await db.delete(researchSteps)
+      .where(eq(researchSteps.queryId, queryId));
   }
 }
 
