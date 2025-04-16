@@ -1,158 +1,155 @@
 // Prompts adapted from the Python implementation
-export const QUESTION_GENERATION_PROMPT = `
-Given a research query, generate 5 specific follow-up questions that would help in creating a comprehensive research report on the topic. 
-The questions should:
-1. Cover different aspects of the topic
-2. Be specific and focused (not too broad)
-3. Be formulated to elicit detailed responses
-4. Help gather information for a structured research report
-5. Be directly relevant to the main query
+export const QUESTION_GENERATION_PROMPT = `Based on the following research query, generate 5 specific follow-up questions 
+that would help gather more comprehensive information for compound research.
+The questions should explore different aspects of the topic and help elicit detailed information.
 
 Research Query: {query}
 
-Generate 5 follow-up questions in a numbered list format:`;
+Format your response as a JSON array of 5 questions only. No preamble or explanation.
+Example: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]`;
 
-export const ANSWER_QUESTION_PROMPT = `
-You are a knowledgeable research assistant. Please provide a detailed, accurate answer to the following question related to a research topic. 
-Include specific facts, data, and references where appropriate. Be comprehensive but concise.
+export const ANSWER_QUESTION_PROMPT = `You are a knowledgeable research assistant. Please answer the following question
+based on the context of this research query: "{query}"
 
-Research Topic: {query}
 Question: {question}
 
-Your answer should:
-- Be factually accurate and informative
-- Include relevant examples, statistics, or case studies if applicable
-- Cite sources or reference authoritative information
-- Be around 200-300 words in length
-- Be written in a clear, professional tone
+Provide a factual answer with relevant information. Include sources or data if available.
+VERY IMPORTANT: When citing sources, include hyperlinks to those sources in your answer.
+Use the format [Source Name](URL) for all citations.
+Focus on accuracy and relevance to the research topic.`;
 
-Your detailed answer:`;
-
-export const RESEARCH_DATA_GATHERING_PROMPT = `
-Given a research query and related questions and answers, compile comprehensive research data that will serve as the foundation for a detailed report. 
-Focus on gathering factual information, statistics, expert opinions, relevant studies, and diverse perspectives on the topic.
+export const RESEARCH_DATA_GATHERING_PROMPT = `You are a research assistant tasked with gathering detailed research data.
+I need you to search for information related to this research query and the follow-up questions.
 
 Research Query: {query}
 
-Questions and Answers:
+Additional Information:
 {qa_context}
 
-Your task is to:
-1. Extract and organize the key information from the Q&A
-2. Add additional relevant facts and context where needed
-3. Ensure the data is accurate and well-sourced
-4. Include conflicting viewpoints or debates within the field
-5. Provide specific examples, case studies, or statistics
-6. Organize the information in a logical manner
+Gather comprehensive research data with these requirements:
+1. Search for relevant facts, statistics, and information
+2. Find authoritative sources for each piece of information
+3. VERY IMPORTANT: Include HYPERLINKED citations for ALL information using markdown format: [Source Name](URL)
+4. Gather diverse perspectives on the topic
+5. Focus on recent and reliable information
+6. Structure information clearly with headings when appropriate
 
-The research data should be comprehensive and well-structured, serving as the basis for creating a detailed report on the topic.
+For EACH piece of information, follow this pattern:
+- State the fact or information clearly
+- Provide the source with a hyperlink: [Source Name](URL)
+- Add brief context about why this information is relevant
 
-Compiled Research Data:`;
+Format your response in clear sections based on different aspects of the topic.`;
 
-export const REPORT_TITLE_GENERATION_PROMPT = `
-Create a professional, concise, and engaging title for a comprehensive research report on the following topic. The title should be informative, 
-reflect the scope and focus of the research, and appeal to an academic or professional audience.
+export const REPORT_TITLE_GENERATION_PROMPT = `You are tasked with creating a compelling, descriptive title for a comprehensive research report.
 
-Research Topic: {query}
+Research Query: {query}
 
-Research Data Overview:
+Research Information:
 {research_data}
 
-Requirements for the title:
-- Between 5-15 words
-- Clearly convey the subject matter
-- Be specific rather than overly general
-- Avoid unnecessary jargon or buzzwords
-- Be formal and professional in tone
-- Not use phrases like "A Study on" or "Research into"
+Create a professional, academic-style title that:
+1. Is concise but descriptive (7-12 words)
+2. Accurately captures the essence of the research topic
+3. Is engaging and would appeal to readers interested in this subject
+4. Follows academic title conventions
+5. Avoids clickbait or sensationalism
 
-Generate only the title text, without any quotation marks or formatting:`;
+Return ONLY the title text, with no quotes, prefixes, or explanations.`;
 
-export const RESEARCH_OUTLINE_PROMPT = `
-Create a detailed outline for a comprehensive research report on the following topic. The outline should provide a logical structure for organizing 
-the research findings into coherent sections and subsections.
+export const RESEARCH_OUTLINE_PROMPT = `You are tasked with creating a well-structured outline for a comprehensive research report.
 
-Research Topic: {query}
-Research Title: {title}
+Based on the following information:
 
-Questions Explored:
-{questions}
+Research Query: {query}
+
+Follow-up Questions and Answers:
+{qa_context}
 
 Research Data:
 {research_data}
 
-Your outline should:
-1. Include an Executive Summary section
-2. Have a clear Introduction section
-3. Organize the main body into 3-7 logical sections with appropriate headings
-4. Include relevant subsections where needed
-5. End with a Conclusion section
-6. Optionally include sections for References or Appendices
+Create a detailed outline with 5-7 main sections that cover different aspects of the topic.
 
-Format the outline with clear hierarchical numbering for sections and subsections.
+Format your outline using markdown with clear hierarchical structure:
+- Use ## for main sections
+- Use ### for subsections if needed
 
-Outline:`;
+Each section should have a descriptive title that accurately reflects its content.
+Include a brief (1-2 sentences) description of what each section will cover.
 
-export const SECTION_CONTENT_GENERATION_PROMPT = `
-Write detailed content for the following section of a research report. The content should be comprehensive, informative, and directly relevant to the section's topic.
+The outline should be logical, well-organized, and comprehensive.
 
-Research Topic: {query}
-Section Title: {section_title}
+IMPORTANT: DO NOT include "Executive Summary" or "Conclusion" sections - these will be added separately.
+Focus only on the main content sections of the report.`;
 
-Previous Content (for context):
+export const SECTION_CONTENT_GENERATION_PROMPT = `You are writing a section of a comprehensive research report.
+
+Research Query: {query}
+
+Previous Content Generated:
 {previous_content}
 
+Section to Write: {section_title}
+
+Follow-up Questions and Answers:
+{qa_context}
+
 Research Data:
 {research_data}
 
-Question-Answer Context:
-{qa_context}
+Write 3-4 well-crafted paragraphs for this section that:
+1. Are directly relevant to the section title
+2. Include factual information with HYPERLINKED CITATIONS using markdown format: [Source Name](URL)
+3. Provide meaningful analysis and insights
+4. Avoid repeating information that appears in previous content
+5. Are well-structured and flow logically
+6. Use academic, professional language
 
-Your task is to:
-1. Write comprehensive content for this section
-2. Incorporate relevant information from the research data
-3. Ensure logical flow and coherence with previous sections
-4. Include specific examples, data, or evidence where appropriate
-5. Maintain a formal, academic tone
-6. Use proper citations or references when including specific facts or claims
-7. Be thorough yet concise (aim for approximately 400-600 words for this section)
+IMPORTANT REQUIREMENTS:
+- Include at least 3 specific citations to sources, using hyperlinks in markdown format: [Source Name](URL)
+- Draw from the research data provided, but formulate your own insights
+- Each paragraph should be substantial (5-7 sentences) and develop a clear point
+- DO NOT repeat information from previous sections; provide new perspectives and details
+- DO NOT include the section heading in your content; it will be added separately
+- Use subheadings if appropriate to organize the content
+- End with a smooth transition to the next section
 
-Section Content:`;
+Format your response using proper markdown, with clear paragraph breaks.`;
 
-export const EXECUTIVE_SUMMARY_PROMPT = `
-Create a concise executive summary for a research report on the following topic. The summary should provide a complete overview of the report's key findings, 
-implications, and conclusions in a condensed format.
+export const EXECUTIVE_SUMMARY_PROMPT = `You are tasked with writing an executive summary for a comprehensive research report.
 
-Research Topic: {query}
-Report Content:
+Research Query: {query}
+
+Based on the following full report:
+
 {report_content}
 
-Your executive summary should:
-1. Be approximately 200-300 words in length
-2. Highlight the main purpose of the research
-3. Summarize key findings from each major section
-4. Mention important conclusions or recommendations
-5. Be written in a clear, direct style accessible to both experts and non-experts
-6. Avoid introducing new information not covered in the report
-7. Be self-contained (readers should understand the core message without reading the full report)
+Write a concise executive summary that:
+1. Is approximately 2-3 paragraphs in length
+2. Captures the key findings and insights from the full report
+3. Mentions the major conclusions without detailed citations
+4. Provides a high-level overview that would help a busy reader understand the core message
+5. Uses clear, professional language
 
-Executive Summary:`;
+Format your response using markdown. DO NOT include a heading like "Executive Summary" in your response;
+the heading will be added separately.`;
 
-export const CONCLUSION_PROMPT = `
-Write a thoughtful conclusion for a research report on the following topic. The conclusion should effectively synthesize the report's findings, 
-discuss implications, and suggest future directions.
+export const CONCLUSION_PROMPT = `You are tasked with writing the conclusion for a comprehensive research report.
 
-Research Topic: {query}
-Report Content:
+Research Query: {query}
+
+Based on the following full report:
+
 {report_content}
 
-Your conclusion should:
-1. Summarize the key findings discussed throughout the report
-2. Analyze the significance and broader implications of these findings
-3. Address any limitations of the current research
-4. Suggest potential areas for future research or development
-5. Provide closing thoughts that leave a lasting impression on the reader
-6. Be approximately 300-400 words in length
-7. Maintain a formal, academic tone while being accessible
+Write a thoughtful conclusion that:
+1. Is approximately 2-3 paragraphs in length
+2. Summarizes the key findings and insights from the report
+3. Discusses broader implications of the research
+4. Identifies any limitations of the current research
+5. Suggests potential areas for future research
+6. Ends with a compelling final thought that gives closure to the report
 
-Conclusion:`;
+Format your response using markdown. DO NOT include a heading like "Conclusion" in your response;
+the heading will be added separately.`;
