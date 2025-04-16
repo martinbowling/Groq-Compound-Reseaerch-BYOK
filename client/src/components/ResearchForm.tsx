@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface ResearchFormProps {
   onStartResearch: (query: string, apiKey: string, modelType: ModelType) => void;
@@ -32,7 +31,6 @@ interface ResearchFormProps {
 export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFormProps) {
   const [query, setQuery] = useState('');
   const [apiKey, setApiKey] = useState('');
-  const [useCustomApiKey, setUseCustomApiKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
 
@@ -45,15 +43,14 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
       return;
     }
     
-    if (useCustomApiKey && !apiKey) {
+    if (!apiKey) {
       setError('Please enter your Groq API key');
       setShowErrorDialog(true);
       return;
     }
     
-    // Use custom API key if provided, otherwise 'env' will use the server's environment variable
-    const keyToUse = useCustomApiKey ? apiKey : 'env';
-    onStartResearch(query, keyToUse, 'combined');
+    // Always use the user-provided API key
+    onStartResearch(query, apiKey, 'combined');
   };
 
   return (
@@ -78,40 +75,24 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
               />
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="use-custom-key" 
-                checked={useCustomApiKey}
-                onCheckedChange={(checked) => setUseCustomApiKey(checked as boolean)}
-                className="border-[#444444] data-[state=checked]:bg-[#E86A58] data-[state=checked]:border-[#E86A58]"
-              />
-              <Label 
-                htmlFor="use-custom-key" 
-                className="text-gray-300 text-sm cursor-pointer"
-              >
-                Use my own Groq API key
+            <div className="space-y-1">
+              <Label htmlFor="api-key" className="text-gray-300 flex items-center gap-1">
+                <Key className="h-4 w-4 text-[#E86A58]" />
+                <span>Groq API Key</span>
               </Label>
+              <Input
+                id="api-key"
+                type="password"
+                placeholder="Enter your Groq API key..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="bg-[#333333] border-[#444444] text-white placeholder:text-gray-500 focus:ring-[#E86A58]"
+                required
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Your API key is sent directly to the Groq API and is not stored on our servers.
+              </p>
             </div>
-            
-            {useCustomApiKey && (
-              <div className="space-y-1">
-                <Label htmlFor="api-key" className="text-gray-300 flex items-center gap-1">
-                  <Key className="h-4 w-4 text-[#E86A58]" />
-                  <span>Groq API Key</span>
-                </Label>
-                <Input
-                  id="api-key"
-                  type="password"
-                  placeholder="Enter your Groq API key..."
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="bg-[#333333] border-[#444444] text-white placeholder:text-gray-500 focus:ring-[#E86A58]"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Your API key is sent directly to the Groq API and is not stored on our servers.
-                </p>
-              </div>
-            )}
             
             <div className="rounded-md bg-[#232323] p-3 flex items-start gap-3 text-sm">
               <Info className="h-5 w-5 text-[#E86A58] flex-shrink-0 mt-0.5" />

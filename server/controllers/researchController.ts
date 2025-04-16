@@ -21,21 +21,18 @@ export const startResearch = async (req: Request, res: Response) => {
   try {
     const { query, modelType = 'combined' } = req.body;
     
-    // Check for API key in header first, fallback to environment variable
+    // Check for API key in header - a key is always required
     let apiKey: string | undefined;
     
-    // If the request header has a non-'env' X-API-Key, use that
+    // Get the API key from the header
     const headerApiKey = req.headers['x-api-key'] as string;
-    if (headerApiKey && headerApiKey !== 'env') {
+    if (headerApiKey) {
       apiKey = headerApiKey;
-    } else {
-      // Otherwise use environment variable
-      apiKey = process.env.GROQ_API_KEY;
     }
     
     if (!apiKey) {
-      return res.status(500).json({ 
-        error: 'No API key provided. Please either set the GROQ_API_KEY environment variable or provide your own key.' 
+      return res.status(400).json({ 
+        error: 'Groq API key is required. Please provide your Groq API key to use this service.' 
       });
     }
     
@@ -96,28 +93,25 @@ export const startResearch = async (req: Request, res: Response) => {
 export const streamResearch = (req: Request, res: Response) => {
   const { queryId } = req.params;
   
-  // Check for API key in query param, header, or environment variable
+  // Check for API key in query param or header - never use environment variable
   let apiKey: string | undefined;
   
   // First check query param (used by EventSource connections which can't set headers)
   const queryApiKey = req.query.apiKey as string;
-  if (queryApiKey && queryApiKey !== 'env') {
+  if (queryApiKey) {
     apiKey = queryApiKey;
   } 
   // Then check header (used by fetch/XHR requests)
   else {
     const headerApiKey = req.headers['x-api-key'] as string;
-    if (headerApiKey && headerApiKey !== 'env') {
+    if (headerApiKey) {
       apiKey = headerApiKey;
-    } else {
-      // Finally fall back to environment variable
-      apiKey = process.env.GROQ_API_KEY;
     }
   }
   
   if (!apiKey) {
-    return res.status(500).json({ 
-      error: 'No API key provided. Please either set the GROQ_API_KEY environment variable or provide your own key.' 
+    return res.status(400).json({ 
+      error: 'Groq API key is required. Please provide your Groq API key to use this service.' 
     });
   }
   
