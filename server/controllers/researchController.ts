@@ -20,10 +20,11 @@ const activeResearch = new Map<string, {
 export const startResearch = async (req: Request, res: Response) => {
   try {
     const { query, modelType = 'combined' } = req.body;
-    const apiKey = req.headers['x-api-key'] as string;
+    // Get API key from environment variables
+    const apiKey = process.env.GROQ_API_KEY;
     
     if (!apiKey) {
-      return res.status(401).json({ error: 'API key is required. Please provide it in the X-API-Key header.' });
+      return res.status(500).json({ error: 'GROQ_API_KEY environment variable is not set' });
     }
     
     if (!query) {
@@ -74,17 +75,19 @@ export const startResearch = async (req: Request, res: Response) => {
     
     return res.status(201).json({ queryId });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error starting research:', error);
-    return res.status(500).json({ error: 'Failed to start research process' });
+    return res.status(500).json({ error: `Failed to start research process: ${errorMessage}` });
   }
 };
 
 export const streamResearch = (req: Request, res: Response) => {
   const { queryId } = req.params;
-  const apiKey = req.query.apiKey as string;
+  // Get API key from environment variables
+  const apiKey = process.env.GROQ_API_KEY;
   
   if (!apiKey) {
-    return res.status(401).json({ error: 'API key is required. Please provide it as a query parameter.' });
+    return res.status(500).json({ error: 'GROQ_API_KEY environment variable is not set' });
   }
   
   if (!activeResearch.has(queryId)) {
@@ -270,18 +273,32 @@ const processResearchQuery = async (queryId: string, query: string, modelType: M
     research.status = 'completed';
     // Note: We don't need to update the database here since the complete event handler will do it
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error processing research query ${queryId}:`, error);
+    
     const research = activeResearch.get(queryId);
     if (research) {
       research.status = 'error';
-      research.error = error instanceof Error ? error.message : String(error);
+      research.error = errorMessage;
       
       // Update status in database
       await storage.updateResearchQueryStatus(queryId, 'error');
       
+      // Add more detailed error information
+      await storage.addResearchStep({
+        queryId,
+        step: 'error',
+        status: 'error',
+        message: `Research process error: ${errorMessage}`,
+        data: { 
+          message: errorMessage,
+          details: error instanceof Error ? error.stack : 'No stack trace available' 
+        }
+      });
+      
       // Emit error event
       const researchService = research.service;
-      researchService.emit('error', error);
+      researchService.emit('error', { message: errorMessage });
     }
   }
 };

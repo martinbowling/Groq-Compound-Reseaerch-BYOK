@@ -29,7 +29,6 @@ interface ResearchFormProps {
 }
 
 export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFormProps) {
-  const [apiKey, setApiKey] = useState('');
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
@@ -37,21 +36,14 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
-    if (!apiKey) {
-      setError('Please enter your Groq API key');
-      setShowErrorDialog(true);
-      return;
-    }
-    
     if (!query) {
       setError('Please enter a research question');
       setShowErrorDialog(true);
       return;
     }
     
-    // Always use combined approach
-    onStartResearch(query, apiKey, 'combined');
+    // Use the environment API key (server will access it)
+    onStartResearch(query, 'env', 'combined');
   };
 
   return (
@@ -65,19 +57,6 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <Label htmlFor="api-key" className="text-gray-300">Groq API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                placeholder="Enter your Groq API key"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="bg-[#333333] border-[#444444] text-white placeholder:text-gray-500 focus:ring-[#E86A58]"
-              />
-              <p className="text-xs text-gray-400">Your API key is never sent to our servers</p>
-            </div>
-            
             <div className="space-y-1">
               <Label htmlFor="query" className="text-gray-300">Research Question</Label>
               <Textarea

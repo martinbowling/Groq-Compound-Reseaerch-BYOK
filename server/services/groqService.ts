@@ -41,6 +41,12 @@ export class GroqService extends EventEmitter {
     super();
     this.baseUrl = 'https://api.groq.com/openai/v1';
     this.apiKey = apiKey;
+    
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error('Groq API key is required but was not provided or is empty');
+    }
+    
+    console.log(`GroqService initialized with API key: ${apiKey.substring(0, 3)}...${apiKey.substring(apiKey.length - 3)}`);
   }
   
   async chatCompletion(
