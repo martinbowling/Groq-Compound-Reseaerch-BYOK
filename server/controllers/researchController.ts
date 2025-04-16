@@ -69,10 +69,8 @@ export const startResearch = async (req: Request, res: Response) => {
       createdAt: new Date()
     });
     
-    // Start the research process asynchronously
-    setTimeout(() => {
-      processResearchQuery(queryId, query, modelType as ModelType, apiKey);
-    }, 0);
+    // We'll start the research process in the streamResearch function
+    // This ensures the events are captured by the EventSource
     
     return res.status(201).json({ queryId });
   } catch (error) {
@@ -100,14 +98,17 @@ export const streamResearch = (req: Request, res: Response) => {
   
   // Send initial status
   const research = activeResearch.get(queryId)!;
+  
+  // Update the ResearchService with the provided API key
+  // This ensures the streaming process uses the same API key as the initial request
+  const researchService = new ResearchService(apiKey);
+  research.service = researchService;
+  
   sendSSEMessage(res, 'progress', { 
     message: 'Starting research process...',
     isCompleted: false,
     progress: 0
   });
-  
-  // Set up event listeners for this research process
-  const researchService = research.service;
   
   researchService.on('progress', async (data) => {
     // Store progress in database
@@ -238,6 +239,10 @@ export const streamResearch = (req: Request, res: Response) => {
     console.log(`Client disconnected from stream for query ${queryId}`);
     // Note: We're not stopping the research process, just noting the disconnect
   });
+  
+  // Start the research process after all listeners are set up
+  // This ensures the client receives all events
+  processResearchQuery(queryId, research.query, research.modelType, apiKey);
 };
 
 // Helper function to send SSE messages
