@@ -414,8 +414,9 @@ export class ResearchService extends EventEmitter {
       .replace('{query}', query)
       .replace('{report_content}', this.truncateText(reportContent, 3000));
     
-    // Use Llama 4 for summary generation
-    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
+    // IMPORTANT: Always use Llama 4 for executive summary generation regardless of modelType
+    // This matches the Python implementation that explicitly uses LLAMA_MODEL for this step
+    return this.groqService.processPrompt(promptText, 'llama', 'llama');
   }
   
   private async generateConclusion(query: string, reportContent: string): Promise<string> {
@@ -423,8 +424,9 @@ export class ResearchService extends EventEmitter {
       .replace('{query}', query)
       .replace('{report_content}', this.truncateText(reportContent, 3000));
     
-    // Use Llama 4 for conclusion generation
-    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
+    // IMPORTANT: Always use Llama 4 for conclusion generation regardless of modelType
+    // This matches the Python implementation that explicitly uses LLAMA_MODEL for this step
+    return this.groqService.processPrompt(promptText, 'llama', 'llama');
   }
   
   // Utility to truncate text to avoid exceeding token limits
