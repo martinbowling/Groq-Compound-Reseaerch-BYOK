@@ -34,17 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
           </nav>
           
-          <div className="hidden sm:flex items-center space-x-4">
-            <a href="https://docs.groq.com/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm">
-              Documentation
-            </a>
-            <a href="https://console.groq.com/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm">
-              Dashboard
-            </a>
-            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-sm">
-              API Keys
-            </a>
-          </div>
+          {/* External links removed as requested */}
         </div>
       </header>
 
