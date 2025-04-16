@@ -99,9 +99,8 @@ export class ResearchService extends EventEmitter {
         progress: 50 
       });
       
-      const questionsFormatted = questions.map((q, i) => `${i+1}. ${q}`).join('\n');
       const outline = await this.createResearchOutline(
-        query, reportTitle, questionsFormatted, researchData
+        query, questions, answers, researchData
       );
       
       this.emit('outline', { outline });
@@ -123,7 +122,7 @@ export class ResearchService extends EventEmitter {
       const sections = this.parseOutline(outline);
       
       let previousContent = '';
-      const contentSections = [];
+      const contentSections: {title: string, content: string}[] = [];
       
       // Calculate progress increments per section
       const progressIncrement = 35 / sections.length;
@@ -230,11 +229,49 @@ export class ResearchService extends EventEmitter {
     // Use Llama 4 for generating follow-up questions
     const response = await this.groqService.processPrompt(promptText, this.modelType, 'llama');
     
-    // Parse the numbered list from the response
+    // Try to parse the response as JSON
+    try {
+      const questions = JSON.parse(response);
+      if (Array.isArray(questions)) {
+        // Ensure we have exactly 5 questions
+        return questions.slice(0, 5);
+      }
+    } catch (error) {
+      console.log("Failed to parse JSON response directly, trying to extract JSON array");
+      
+      // Try to extract an array from the text
+      const startIndex = response.indexOf('[');
+      const endIndex = response.lastIndexOf(']');
+      
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+        try {
+          const jsonArray = response.substring(startIndex, endIndex + 1);
+          const questions = JSON.parse(jsonArray);
+          if (Array.isArray(questions)) {
+            return questions.slice(0, 5);
+          }
+        } catch (e) {
+          console.log("Failed to parse extracted JSON array");
+        }
+      }
+    }
+    
+    // Fallback: Parse the response as a numbered list
     const questions = response
       .split('\n')
       .filter(line => /^\d+\./.test(line.trim()))
       .map(line => line.replace(/^\d+\.\s*/, '').trim());
+    
+    // If we couldn't parse any questions, create some default ones
+    if (questions.length === 0) {
+      return [
+        `What are the key aspects of ${query}?`,
+        `What are the main challenges regarding ${query}?`,
+        `What are some recent developments in ${query}?`,
+        `How does ${query} impact various stakeholders?`,
+        `What future trends are expected for ${query}?`
+      ];
+    }
     
     // Ensure we have exactly 5 questions
     return questions.slice(0, 5);
@@ -276,74 +313,82 @@ export class ResearchService extends EventEmitter {
   
   private async createResearchOutline(
     query: string, 
-    title: string, 
-    questions: string, 
+    questions: string[], 
+    answers: string[], 
     researchData: string
   ): Promise<string> {
+    // Build the qa_context from questions and answers
+    let qaContext = '';
+    for (let i = 0; i < questions.length; i++) {
+      qaContext += `Q: ${questions[i]}\nA: ${answers[i]}\n\n`;
+    }
+    
     const promptText = prompts.RESEARCH_OUTLINE_PROMPT
       .replace('{query}', query)
-      .replace('{title}', title)
-      .replace('{questions}', questions)
+      .replace('{qa_context}', qaContext)
       .replace('{research_data}', this.truncateText(researchData, 2000));
     
     // Use Llama 4 for outline creation (better at structured tasks)
     return this.groqService.processPrompt(promptText, this.modelType, 'llama');
   }
   
-  private parseOutline(outline: string): { title: string, level: number }[] {
-    const lines = outline.split('\n');
-    const sectionRegex = /^(\d+)\.(\d+)?\s+(.+)$/;
-    const sections: { title: string; level: number }[] = [];
+  private parseOutline(outline: string): { title: string, level: number, description: string }[] {
+    // Simple parsing based on markdown headers
+    const sections: { title: string, level: number, description: string }[] = [];
+    let currentSection: { title: string, level: number, description: string } | null = null;
     
+    const lines = outline.split('\n');
     for (const line of lines) {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue;
       
-      // Look for section headers with numbering like "1. Introduction" or "3.2 Methods"
-      const match = trimmedLine.match(sectionRegex);
-      if (match) {
-        const mainSection = parseInt(match[1]);
-        const subSection = match[2] ? parseInt(match[2]) : null;
-        const title = match[3].trim();
-        
-        // Only include main sections and first-level subsections
-        if (!subSection || subSection === 1) {
-          sections.push({
-            title,
-            level: subSection ? 2 : 1
-          });
+      if (trimmedLine.startsWith('## ')) {  // Main section (level 2 header in markdown)
+        if (currentSection) {
+          sections.push(currentSection);
         }
-      } else if (trimmedLine.toLowerCase().includes('executive summary')) {
-        sections.unshift({
-          title: 'Executive Summary',
+        currentSection = {
+          title: trimmedLine.substring(3),
+          description: '',
           level: 1
-        });
-      } else if (trimmedLine.toLowerCase().includes('conclusion')) {
-        if (!sections.some(s => s.title.toLowerCase().includes('conclusion'))) {
-          sections.push({
-            title: 'Conclusion',
-            level: 1
-          });
+        };
+      } else if (trimmedLine.startsWith('### ')) {  // Subsection (level 3 header in markdown)
+        if (currentSection) {
+          // We're focusing on main sections, so we'll just add the subsection title to the description
+          if (currentSection.description) {
+            currentSection.description += ' ' + trimmedLine.substring(4);
+          } else {
+            currentSection.description = trimmedLine.substring(4);
+          }
+        }
+      } else if (currentSection && trimmedLine && !trimmedLine.startsWith('#')) {
+        // Add description text
+        if (currentSection.description) {
+          currentSection.description += ' ' + trimmedLine;
+        } else {
+          currentSection.description = trimmedLine;
         }
       }
     }
     
-    // Make sure we have Executive Summary and Conclusion
-    if (!sections.some(s => s.title.toLowerCase().includes('executive summary'))) {
-      sections.unshift({
-        title: 'Executive Summary',
-        level: 1
-      });
+    // Add the last section if there is one
+    if (currentSection) {
+      sections.push(currentSection);
     }
     
-    if (!sections.some(s => s.title.toLowerCase().includes('conclusion'))) {
-      sections.push({
-        title: 'Conclusion',
-        level: 1
-      });
+    // If parsing failed or produced no sections, create a default structure
+    if (sections.length === 0) {
+      sections.push(
+        { title: 'Main Findings', description: 'Key research findings', level: 1 },
+        { title: 'Analysis', description: 'Analysis of the research', level: 1 },
+        { title: 'Discussion', description: 'Discussion of implications', level: 1 }
+      );
     }
     
-    return sections;
+    // Filter out any executive summary or conclusion sections that might have been included
+    return sections.filter(section => {
+      const titleLower = section.title.toLowerCase();
+      return !titleLower.includes('executive summary') && !titleLower.includes('conclusion');
+    });
   }
   
   private async generateSectionContent(
