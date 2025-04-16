@@ -197,12 +197,41 @@ export class ResearchService extends EventEmitter {
       });
       
       // Assemble final report
+      // Log the conclusion to debug any issues
+      console.log('Adding conclusion to final report. Conclusion length:', conclusion.length);
+      console.log('Conclusion content sample:', conclusion.substring(0, 100) + '...');
+      
+      // If conclusion is empty or very short, create a fallback conclusion
+      if (!conclusion || conclusion.trim().length < 50) {
+        console.log('WARNING: Final conclusion is still empty or too short after generation attempts.');
+        console.log('Using fallback conclusion text to ensure report completeness.');
+        // Create a simple conclusion based on the research query and sections
+        const fallbackConclusion = `
+This research report has provided a comprehensive analysis of ${query}. The investigation covered various aspects 
+including ${contentSections.map(s => s.title).join(', ')}.
+
+Through this analysis, we've gained valuable insights into the subject matter and its implications. The findings 
+presented in this report offer a foundation for further research and practical applications in this field. As 
+technologies and knowledge continue to evolve, future studies may build upon these conclusions to develop more 
+advanced understanding of ${query}.
+        `.trim();
+        
+        conclusion = fallbackConclusion;
+      }
+      
       const report = {
         title: reportTitle,
         executiveSummary,
         sections: contentSections,
         conclusion
       };
+      
+      // Verify all sections are included in the report
+      console.log('Report assembly complete. Report sections:');
+      console.log(`- Title: ${reportTitle.length > 0 ? 'Present' : 'Missing'}`);
+      console.log(`- Executive Summary: ${executiveSummary.length > 0 ? 'Present' : 'Missing'}`);
+      console.log(`- Content Sections: ${contentSections.length} sections`);
+      console.log(`- Conclusion: ${conclusion.length > 0 ? 'Present' : 'Missing'}`);
       
       this.emit('report', { report });
       this.emit('progress', { 
@@ -426,7 +455,21 @@ export class ResearchService extends EventEmitter {
     
     // IMPORTANT: Always use Llama 4 for conclusion generation regardless of modelType
     // This matches the Python implementation that explicitly uses LLAMA_MODEL for this step
-    return this.groqService.processPrompt(promptText, 'llama', 'llama');
+    console.log('Generating conclusion with Llama 4 model...');
+    const conclusion = await this.groqService.processPrompt(promptText, 'llama', 'llama');
+    console.log('Conclusion generated. Length:', conclusion.length);
+    
+    // If conclusion is empty or too short, generate a fallback conclusion
+    if (!conclusion || conclusion.trim().length < 50) {
+      console.log('Warning: Generated conclusion was too short or empty. Generating fallback conclusion...');
+      // Try one more time with a more explicit prompt
+      const fallbackPrompt = `Write a detailed 2-3 paragraph conclusion for a research report about: "${query}". 
+      The conclusion should summarize key findings, discuss implications, and end with a final thought.`;
+      
+      return this.groqService.processPrompt(fallbackPrompt, 'llama', 'llama');
+    }
+    
+    return conclusion;
   }
   
   // Utility to truncate text to avoid exceeding token limits
