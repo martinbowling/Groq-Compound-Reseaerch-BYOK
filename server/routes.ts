@@ -8,6 +8,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/research', startResearch);
   app.get('/api/research/:queryId/stream', streamResearch);
   app.get('/api/research/:queryId', getResearchStatus);
+  app.get('/api/research/:queryId/steps', getResearchSteps);
 
   const httpServer = createServer(app);
 
