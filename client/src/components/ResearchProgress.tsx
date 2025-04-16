@@ -40,7 +40,7 @@ export function ResearchProgress({ progress, currentStep, progressPercentage }: 
   });
 
   return (
-    <Card className="bg-[#1E1E1E] border-[#333333]">
+    <Card className="bg-[#1A1A1A] border-[#333333]">
       <CardHeader>
         <CardTitle className="text-white">Research Progress</CardTitle>
       </CardHeader>
@@ -50,14 +50,14 @@ export function ResearchProgress({ progress, currentStep, progressPercentage }: 
             <div key={step.id} className="flex items-center">
               <div className={`w-8 h-8 flex-shrink-0 mr-3 rounded-full flex items-center justify-center
                 ${step.isCompleted 
-                  ? 'bg-[#9C27B0] bg-opacity-20' 
+                  ? 'bg-[#E86A58] bg-opacity-20' 
                   : step.isActive 
-                    ? 'bg-[#9C27B0] bg-opacity-20' 
-                    : 'border-2 border-[#666666]'}`}>
+                    ? 'bg-[#E86A58] bg-opacity-20' 
+                    : 'border-2 border-[#444444]'}`}>
                 {step.isCompleted ? (
-                  <Check className="h-5 w-5 text-[#9C27B0]" />
+                  <Check className="h-5 w-5 text-[#E86A58]" />
                 ) : step.isActive ? (
-                  <div className="h-4 w-4 bg-[#9C27B0] rounded-full animate-pulse"></div>
+                  <div className="h-4 w-4 bg-[#E86A58] rounded-full animate-pulse"></div>
                 ) : (
                   <span className="text-xs text-gray-500">{index + 1}</span>
                 )}
@@ -84,7 +84,7 @@ export function ResearchProgress({ progress, currentStep, progressPercentage }: 
           <Progress 
             value={progressPercentage} 
             className="h-2 mt-2 bg-[#333333]"
-            indicatorClassName="bg-[#9C27B0]"
+            indicatorClassName="bg-[#E86A58]"
           />
         </div>
       </CardContent>

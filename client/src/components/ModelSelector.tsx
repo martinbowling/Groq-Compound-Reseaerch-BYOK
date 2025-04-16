@@ -20,7 +20,7 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
           <RadioGroupItem 
             value="combined" 
             id="model-combined" 
-            className="mt-1 h-4 w-4 text-[#9C27B0] focus:ring-[#9C27B0] border-[#666666] bg-[#333333]"
+            className="mt-1 h-4 w-4 text-[#E86A58] focus:ring-[#E86A58] border-[#444444] bg-[#333333]"
           />
           <div className="space-y-1">
             <Label 
@@ -39,7 +39,7 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
           <RadioGroupItem 
             value="compound" 
             id="model-compound" 
-            className="mt-1 h-4 w-4 text-[#9C27B0] focus:ring-[#9C27B0] border-[#666666] bg-[#333333]"
+            className="mt-1 h-4 w-4 text-[#E86A58] focus:ring-[#E86A58] border-[#444444] bg-[#333333]"
           />
           <div className="space-y-1">
             <Label 
@@ -58,7 +58,7 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
           <RadioGroupItem 
             value="llama" 
             id="model-llama" 
-            className="mt-1 h-4 w-4 text-[#9C27B0] focus:ring-[#9C27B0] border-[#666666] bg-[#333333]"
+            className="mt-1 h-4 w-4 text-[#E86A58] focus:ring-[#E86A58] border-[#444444] bg-[#333333]"
           />
           <div className="space-y-1">
             <Label 

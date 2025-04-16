@@ -55,7 +55,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
 
   return (
     <>
-      <Card className="bg-[#1E1E1E] border-[#333333]">
+      <Card className="bg-[#1A1A1A] border-[#333333]">
         <CardHeader>
           <CardTitle className="text-white">Research Query</CardTitle>
         </CardHeader>
@@ -69,7 +69,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
                 placeholder="Enter your Groq API key"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="bg-[#333333] border-[#666666] text-white placeholder:text-gray-500 focus:ring-[#9C27B0]"
+                className="bg-[#333333] border-[#444444] text-white placeholder:text-gray-500 focus:ring-[#E86A58]"
               />
               <p className="text-xs text-gray-400">Your API key is never sent to our servers</p>
             </div>
@@ -81,7 +81,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
                 placeholder="Enter your research question here..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="bg-[#333333] border-[#666666] text-white placeholder:text-gray-500 focus:ring-[#9C27B0] resize-none h-24"
+                className="bg-[#333333] border-[#444444] text-white placeholder:text-gray-500 focus:ring-[#E86A58] resize-none h-24"
               />
             </div>
             
@@ -93,7 +93,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
             <div className="pt-2 flex gap-2">
               <Button 
                 type="submit" 
-                className="w-full bg-[#9C27B0] hover:bg-opacity-90 text-white font-medium"
+                className="w-full bg-[#E86A58] hover:bg-opacity-90 text-white font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? 'Processing...' : 'Start Research'}
@@ -104,7 +104,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
                   type="button" 
                   variant="outline" 
                   onClick={onReset}
-                  className="border-[#666666] text-white hover:text-white hover:bg-[#333333]"
+                  className="border-[#444444] text-white hover:text-white hover:bg-[#333333]"
                 >
                   Reset
                 </Button>
@@ -115,7 +115,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
       </Card>
       
       <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-        <DialogContent className="bg-[#1E1E1E] border-[#333333] text-white">
+        <DialogContent className="bg-[#1A1A1A] border-[#333333] text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-red-500" />
@@ -128,7 +128,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
           <DialogFooter>
             <Button 
               onClick={() => setShowErrorDialog(false)}
-              className="bg-[#9C27B0] hover:bg-opacity-90 text-white"
+              className="bg-[#E86A58] hover:bg-opacity-90 text-white"
             >
               OK
             </Button>
