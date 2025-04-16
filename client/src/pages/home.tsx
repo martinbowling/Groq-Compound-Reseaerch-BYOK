@@ -78,8 +78,13 @@ export default function Home() {
       eventSourceRef.current.close();
     }
 
+    // Add the API key as a query parameter for custom keys
+    const url = apiKey !== 'env' 
+      ? `/api/research/${queryId}/stream?apiKey=${encodeURIComponent(apiKey)}` 
+      : `/api/research/${queryId}/stream`;
+      
     // Connect to the EventSource
-    const eventSource = new EventSource(`/api/research/${queryId}/stream`);
+    const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('progress', (event) => {

@@ -20,11 +20,23 @@ const activeResearch = new Map<string, {
 export const startResearch = async (req: Request, res: Response) => {
   try {
     const { query, modelType = 'combined' } = req.body;
-    // Get API key from environment variables
-    const apiKey = process.env.GROQ_API_KEY;
+    
+    // Check for API key in header first, fallback to environment variable
+    let apiKey: string | undefined;
+    
+    // If the request header has a non-'env' X-API-Key, use that
+    const headerApiKey = req.headers['x-api-key'] as string;
+    if (headerApiKey && headerApiKey !== 'env') {
+      apiKey = headerApiKey;
+    } else {
+      // Otherwise use environment variable
+      apiKey = process.env.GROQ_API_KEY;
+    }
     
     if (!apiKey) {
-      return res.status(500).json({ error: 'GROQ_API_KEY environment variable is not set' });
+      return res.status(500).json({ 
+        error: 'No API key provided. Please either set the GROQ_API_KEY environment variable or provide your own key.' 
+      });
     }
     
     if (!query) {
@@ -83,11 +95,30 @@ export const startResearch = async (req: Request, res: Response) => {
 
 export const streamResearch = (req: Request, res: Response) => {
   const { queryId } = req.params;
-  // Get API key from environment variables
-  const apiKey = process.env.GROQ_API_KEY;
+  
+  // Check for API key in query param, header, or environment variable
+  let apiKey: string | undefined;
+  
+  // First check query param (used by EventSource connections which can't set headers)
+  const queryApiKey = req.query.apiKey as string;
+  if (queryApiKey && queryApiKey !== 'env') {
+    apiKey = queryApiKey;
+  } 
+  // Then check header (used by fetch/XHR requests)
+  else {
+    const headerApiKey = req.headers['x-api-key'] as string;
+    if (headerApiKey && headerApiKey !== 'env') {
+      apiKey = headerApiKey;
+    } else {
+      // Finally fall back to environment variable
+      apiKey = process.env.GROQ_API_KEY;
+    }
+  }
   
   if (!apiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY environment variable is not set' });
+    return res.status(500).json({ 
+      error: 'No API key provided. Please either set the GROQ_API_KEY environment variable or provide your own key.' 
+    });
   }
   
   if (!activeResearch.has(queryId)) {
