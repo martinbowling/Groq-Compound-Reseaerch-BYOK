@@ -78,7 +78,8 @@ export default function Home() {
       eventSourceRef.current.close();
     }
 
-    const eventSource = new EventSource(`/api/research/${queryId}/stream`);
+    // Add the API key to the EventSource URL as a query parameter
+    const eventSource = new EventSource(`/api/research/${queryId}/stream?apiKey=${encodeURIComponent(apiKey)}`);
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('progress', (event) => {
@@ -186,19 +187,52 @@ export default function Home() {
       eventSourceRef.current = null;
     });
 
-    eventSource.addEventListener('error', (event) => {
-      const data = JSON.parse(event.data);
-      setResearchState(prevState => ({
-        ...prevState,
-        status: 'error',
-        error: data.message
-      }));
-      
-      toast({
-        title: 'Error',
-        description: data.message || 'An error occurred during research.',
-        variant: 'destructive'
-      });
+    eventSource.addEventListener('error', (event: Event) => {
+      // Handle the SSE error event from the server
+      try {
+        // Safely check if event has data property
+        const customEvent = event as { data?: string };
+        if (customEvent.data) {
+          const data = JSON.parse(customEvent.data);
+          setResearchState(prevState => ({
+            ...prevState,
+            status: 'error',
+            error: data.message
+          }));
+          
+          toast({
+            title: 'Error',
+            description: data.message || 'An error occurred during research.',
+            variant: 'destructive'
+          });
+        } else {
+          // Handle case where there's no data in the error event
+          setResearchState(prevState => ({
+            ...prevState,
+            status: 'error',
+            error: 'An unexpected error occurred'
+          }));
+          
+          toast({
+            title: 'Error',
+            description: 'An unexpected error occurred during research.',
+            variant: 'destructive'
+          });
+        }
+      } catch (err) {
+        console.error('Error parsing error event:', err);
+        setResearchState(prevState => ({
+          ...prevState,
+          status: 'error',
+          error: 'Failed to process server response'
+        }));
+        
+        toast({
+          title: 'Error',
+          description: 'Failed to process server response.',
+          variant: 'destructive'
+        });
+      }
       
       // Close the SSE connection
       eventSource.close();

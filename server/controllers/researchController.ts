@@ -83,6 +83,11 @@ export const startResearch = async (req: Request, res: Response) => {
 
 export const streamResearch = (req: Request, res: Response) => {
   const { queryId } = req.params;
+  const apiKey = req.query.apiKey as string;
+  
+  if (!apiKey) {
+    return res.status(401).json({ error: 'API key is required. Please provide it as a query parameter.' });
+  }
   
   if (!activeResearch.has(queryId)) {
     return res.status(404).json({ error: 'Research query not found' });
