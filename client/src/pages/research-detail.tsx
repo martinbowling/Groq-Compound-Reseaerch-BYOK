@@ -67,11 +67,11 @@ export default function ResearchDetail() {
   const getModelLabel = (modelType: ModelType) => {
     switch (modelType) {
       case 'combined':
-        return 'Combined (Compound + Llama 3)';
+        return 'Combined (Compound + Llama 4 Maverick)';
       case 'compound':
         return 'Groq Compound (Mixtral 8x7B)';
       case 'llama':
-        return 'Llama 3 (70B)';
+        return 'Llama 4 Maverick (17B)';
       default:
         return modelType;
     }

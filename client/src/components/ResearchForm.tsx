@@ -52,7 +52,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
         <CardHeader>
           <CardTitle className="text-white">Research Query</CardTitle>
           <CardDescription className="text-gray-400">
-            Using optimized hybrid model approach: Llama 3 + Groq Compound
+            Using optimized hybrid model approach: Llama 4 Maverick + Groq Compound
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,7 +74,7 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
                 <p className="text-gray-300">This research assistant uses a specialized model strategy:</p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="bg-[#2C2C2C] text-gray-300">
-                    Llama 3 (70B)
+                    Llama 4 Maverick (17B)
                   </Badge>
                   <span className="text-gray-400">+</span>
                   <Badge variant="secondary" className="bg-[#2C2C2C] text-gray-300">
