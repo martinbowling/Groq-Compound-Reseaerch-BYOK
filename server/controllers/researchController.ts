@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ResearchService } from '../services/researchService';
 import { ModelType } from '@shared/types/research';
+import { storage } from '../storage';
 
 // Track active research processes
 const activeResearch = new Map<string, {
@@ -40,7 +41,23 @@ export const startResearch = async (req: Request, res: Response) => {
     // Create new research service instance
     const researchService = new ResearchService(apiKey);
     
-    // Store the research service instance
+    // Store the research query in the database
+    await storage.createResearchQuery({
+      queryId,
+      query,
+      modelType: modelType as ModelType
+    });
+    
+    // Add initial progress step
+    await storage.addResearchStep({
+      queryId,
+      step: 'init',
+      status: 'in_progress',
+      message: 'Starting research process...',
+      data: null
+    });
+    
+    // Store the research service instance in memory 
     activeResearch.set(queryId, { 
       service: researchService,
       query,
@@ -87,38 +104,104 @@ export const streamResearch = (req: Request, res: Response) => {
   // Set up event listeners for this research process
   const researchService = research.service;
   
-  researchService.on('progress', (data) => {
+  researchService.on('progress', async (data) => {
+    // Store progress in database
+    await storage.addResearchStep({
+      queryId,
+      step: data.step || 'progress',
+      status: data.isCompleted ? 'completed' : 'in_progress',
+      message: data.message,
+      data: data
+    });
     sendSSEMessage(res, 'progress', data);
   });
   
-  researchService.on('questions', (data) => {
+  researchService.on('questions', async (data) => {
     research.questions = data.questions;
+    // Store questions in database
+    await storage.addResearchStep({
+      queryId,
+      step: 'questions',
+      status: 'completed',
+      message: 'Generated follow-up questions',
+      data: data
+    });
     sendSSEMessage(res, 'questions', data);
   });
   
-  researchService.on('qa', (data) => {
+  researchService.on('qa', async (data) => {
     research.answers.push(data.answer);
+    // Store answer in database
+    await storage.addResearchStep({
+      queryId,
+      step: 'qa',
+      status: 'completed',
+      message: `Answered: ${data.question}`,
+      data: data
+    });
     sendSSEMessage(res, 'qa', data);
   });
   
-  researchService.on('title', (data) => {
+  researchService.on('title', async (data) => {
+    // Store title in database
+    await storage.updateResearchQueryTitle(queryId, data.title);
+    await storage.addResearchStep({
+      queryId,
+      step: 'title',
+      status: 'completed',
+      message: `Generated title: ${data.title}`,
+      data: data
+    });
     sendSSEMessage(res, 'title', data);
   });
   
-  researchService.on('outline', (data) => {
+  researchService.on('outline', async (data) => {
+    // Store outline in database
+    await storage.addResearchStep({
+      queryId,
+      step: 'outline',
+      status: 'completed',
+      message: 'Generated research outline',
+      data: data
+    });
     sendSSEMessage(res, 'outline', data);
   });
   
-  researchService.on('section', (data) => {
+  researchService.on('section', async (data) => {
+    // Store section in database
+    await storage.addResearchStep({
+      queryId,
+      step: 'section',
+      status: 'completed',
+      message: `Generated section: ${data.section.title}`,
+      data: data
+    });
     sendSSEMessage(res, 'section', data);
   });
   
-  researchService.on('report', (data) => {
+  researchService.on('report', async (data) => {
+    // Store report in database
+    await storage.addResearchStep({
+      queryId,
+      step: 'report',
+      status: 'completed',
+      message: 'Generated final report',
+      data: data
+    });
     sendSSEMessage(res, 'report', data);
   });
   
-  researchService.on('complete', (data) => {
+  researchService.on('complete', async (data) => {
     research.status = 'completed';
+    // Update status in database
+    await storage.completeResearchQuery(queryId);
+    await storage.addResearchStep({
+      queryId,
+      step: 'complete',
+      status: 'completed',
+      message: 'Research completed',
+      data: data
+    });
     sendSSEMessage(res, 'complete', data);
     // Clean up after a delay
     setTimeout(() => {
@@ -126,9 +209,18 @@ export const streamResearch = (req: Request, res: Response) => {
     }, 3600000); // Remove after 1 hour
   });
   
-  researchService.on('error', (error) => {
+  researchService.on('error', async (error) => {
     research.status = 'error';
     research.error = error.message;
+    // Update status in database
+    await storage.updateResearchQueryStatus(queryId, 'error');
+    await storage.addResearchStep({
+      queryId,
+      step: 'error',
+      status: 'error',
+      message: error.message,
+      data: { message: error.message }
+    });
     sendSSEMessage(res, 'error', { message: error.message });
     // Clean up on error
     setTimeout(() => {
@@ -159,18 +251,23 @@ const processResearchQuery = async (queryId: string, query: string, modelType: M
     
     // Update status
     research.status = 'in_progress';
+    await storage.updateResearchQueryStatus(queryId, 'in_progress');
     
     // Execute the research process
     await researchService.executeResearch(query, modelType);
     
     // Update status on completion
     research.status = 'completed';
+    // Note: We don't need to update the database here since the complete event handler will do it
   } catch (error) {
     console.error(`Error processing research query ${queryId}:`, error);
     const research = activeResearch.get(queryId);
     if (research) {
       research.status = 'error';
       research.error = error instanceof Error ? error.message : String(error);
+      
+      // Update status in database
+      await storage.updateResearchQueryStatus(queryId, 'error');
       
       // Emit error event
       const researchService = research.service;
@@ -179,19 +276,51 @@ const processResearchQuery = async (queryId: string, query: string, modelType: M
   }
 };
 
-export const getResearchStatus = (req: Request, res: Response) => {
+export const getResearchStatus = async (req: Request, res: Response) => {
   const { queryId } = req.params;
   
-  if (!activeResearch.has(queryId)) {
+  // First, check in memory (for active research)
+  if (activeResearch.has(queryId)) {
+    const research = activeResearch.get(queryId)!;
+    return res.status(200).json({
+      status: research.status,
+      query: research.query,
+      modelType: research.modelType,
+      createdAt: research.createdAt,
+      error: research.error
+    });
+  }
+  
+  // If not in memory, check the database
+  const dbResearch = await storage.getResearchQuery(queryId);
+  if (dbResearch) {
+    return res.status(200).json({
+      status: dbResearch.status,
+      query: dbResearch.query,
+      modelType: dbResearch.modelType,
+      createdAt: dbResearch.createdAt,
+      completedAt: dbResearch.completedAt,
+      title: dbResearch.title
+    });
+  }
+  
+  return res.status(404).json({ error: 'Research query not found' });
+};
+
+export const getResearchSteps = async (req: Request, res: Response) => {
+  const { queryId } = req.params;
+  
+  // Check if research query exists
+  const researchQuery = await storage.getResearchQuery(queryId);
+  if (!researchQuery) {
     return res.status(404).json({ error: 'Research query not found' });
   }
   
-  const research = activeResearch.get(queryId)!;
+  // Get all steps for this research query
+  const steps = await storage.getResearchSteps(queryId);
+  
   return res.status(200).json({
-    status: research.status,
-    query: research.query,
-    modelType: research.modelType,
-    createdAt: research.createdAt,
-    error: research.error
+    queryId,
+    steps
   });
 };

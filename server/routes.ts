@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { startResearch, streamResearch, getResearchStatus } from "./controllers/researchController";
+import { startResearch, streamResearch, getResearchStatus, getResearchSteps } from "./controllers/researchController";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Research routes
