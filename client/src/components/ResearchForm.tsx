@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ModelSelector } from './ModelSelector';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -9,8 +8,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 import { ModelType } from '@shared/types/research';
 import {
   Dialog,
@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 
 interface ResearchFormProps {
   onStartResearch: (query: string, apiKey: string, modelType: ModelType) => void;
@@ -30,7 +31,6 @@ interface ResearchFormProps {
 export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFormProps) {
   const [apiKey, setApiKey] = useState('');
   const [query, setQuery] = useState('');
-  const [modelType, setModelType] = useState<ModelType>('combined');
   const [error, setError] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
 
@@ -50,7 +50,8 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
       return;
     }
     
-    onStartResearch(query, apiKey, modelType);
+    // Always use combined approach
+    onStartResearch(query, apiKey, 'combined');
   };
 
   return (
@@ -58,6 +59,9 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
       <Card className="bg-[#1A1A1A] border-[#333333]">
         <CardHeader>
           <CardTitle className="text-white">Research Query</CardTitle>
+          <CardDescription className="text-gray-400">
+            Using optimized hybrid model approach: Llama 4 Maverick + Groq Compound
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,10 +89,24 @@ export function ResearchForm({ onStartResearch, isLoading, onReset }: ResearchFo
               />
             </div>
             
-            <ModelSelector 
-              value={modelType} 
-              onChange={setModelType} 
-            />
+            <div className="rounded-md bg-[#232323] p-3 flex items-start gap-3 text-sm">
+              <Info className="h-5 w-5 text-[#E86A58] flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <p className="text-gray-300">This research assistant uses a specialized model strategy:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="bg-[#2C2C2C] text-gray-300">
+                    Llama 4 Maverick (17B)
+                  </Badge>
+                  <span className="text-gray-400">+</span>
+                  <Badge variant="secondary" className="bg-[#2C2C2C] text-gray-300">
+                    Groq Compound (Beta)
+                  </Badge>
+                </div>
+                <p className="text-gray-400 text-xs">
+                  Each model performs different tasks based on its strengths, producing comprehensive research with accurate citations.
+                </p>
+              </div>
+            </div>
             
             <div className="pt-2 flex gap-2">
               <Button 
