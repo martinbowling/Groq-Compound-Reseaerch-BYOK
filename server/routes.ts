@@ -7,7 +7,8 @@ import {
   getResearchStatus, 
   getResearchSteps,
   listResearchQueries,
-  getResearchReport
+  getResearchReport,
+  deleteResearch
 } from "./controllers/researchController";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -18,6 +19,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/research/:queryId', getResearchStatus);
   app.get('/api/research/:queryId/steps', getResearchSteps);
   app.get('/api/research/:queryId/report', getResearchReport);
+  app.delete('/api/research/:queryId', deleteResearch);
 
   const httpServer = createServer(app);
 

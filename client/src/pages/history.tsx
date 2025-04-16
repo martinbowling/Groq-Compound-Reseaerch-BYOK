@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,19 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { AppLayout } from "@/components/AppLayout";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, FileText, AlertCircle } from "lucide-react";
+import { Clock, FileText, AlertCircle, Trash2 } from "lucide-react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResearchQuery {
   id: number;
@@ -35,8 +47,11 @@ interface ResearchHistoryResponse {
 
 export default function History() {
   const [page, setPage] = useState(0);
+  const [deleteQueryId, setDeleteQueryId] = useState<string | null>(null);
   const limit = 10;
   const offset = page * limit;
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data, isLoading, error } = useQuery<ResearchHistoryResponse>({
     queryKey: ['/api/research', { limit, offset }],
@@ -46,6 +61,35 @@ export default function History() {
           if (!res.ok) throw new Error('Failed to fetch research history');
           return res.json();
         }),
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: async (queryId: string) => {
+      const response = await fetch(`/api/research/${queryId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete research');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate the query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/research'] });
+      toast({
+        title: "Research deleted",
+        description: "The research has been successfully deleted",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete research",
+        variant: "destructive",
+      });
+    },
   });
 
   const getStatusBadge = (status: string) => {
@@ -226,6 +270,30 @@ export default function History() {
                         <Link href={`/research/${query.queryId}`}>
                           <Button variant="outline" size="sm">View Details</Button>
                         </Link>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-red-500 border-red-200 hover:bg-red-50">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Research</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this research? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                className="bg-red-500 hover:bg-red-600"
+                                onClick={() => deleteMutation.mutate(query.queryId)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </CardContent>
                   </Card>
