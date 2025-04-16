@@ -1,13 +1,17 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
 const Timeline = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("space-y-4", className)} {...props} />
-));
-Timeline.displayName = "Timeline";
+  <div
+    ref={ref}
+    className={cn("space-y-4", className)}
+    {...props}
+  />
+))
+Timeline.displayName = "Timeline"
 
 const TimelineItem = React.forwardRef<
   HTMLDivElement,
@@ -15,35 +19,11 @@ const TimelineItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("relative pl-6", className)}
+    className={cn("relative ml-3", className)}
     {...props}
   />
-));
-TimelineItem.displayName = "TimelineItem";
-
-const TimelineConnector = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("absolute h-full w-px bg-border left-2 top-4", className)}
-    {...props}
-  />
-));
-TimelineConnector.displayName = "TimelineConnector";
-
-const TimelineHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex items-center gap-2", className)}
-    {...props}
-  />
-));
-TimelineHeader.displayName = "TimelineHeader";
+))
+TimelineItem.displayName = "TimelineItem"
 
 const TimelineIcon = React.forwardRef<
   HTMLDivElement,
@@ -52,13 +32,37 @@ const TimelineIcon = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center justify-center rounded-full bg-secondary w-4 h-4 z-10",
+      "absolute left-0 -translate-x-1/2 flex h-6 w-6 items-center justify-center rounded-full border border-muted bg-background z-10",
       className
     )}
     {...props}
   />
-));
-TimelineIcon.displayName = "TimelineIcon";
+))
+TimelineIcon.displayName = "TimelineIcon"
+
+const TimelineConnector = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("absolute top-0 left-0 -translate-x-1/2 w-[2px] h-full bg-border", className)}
+    {...props}
+  />
+))
+TimelineConnector.displayName = "TimelineConnector"
+
+const TimelineHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex gap-2 items-center mb-2", className)}
+    {...props}
+  />
+))
+TimelineHeader.displayName = "TimelineHeader"
 
 const TimelineBody = React.forwardRef<
   HTMLDivElement,
@@ -66,17 +70,30 @@ const TimelineBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("mt-2", className)}
+    className={cn("pb-6", className)}
     {...props}
   />
-));
-TimelineBody.displayName = "TimelineBody";
+))
+TimelineBody.displayName = "TimelineBody"
 
-export {
-  Timeline,
-  TimelineItem,
-  TimelineConnector,
-  TimelineHeader,
-  TimelineIcon,
-  TimelineBody,
-};
+const TimelineContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex-1 pb-8 pt-1", className)}
+    {...props}
+  />
+))
+TimelineContent.displayName = "TimelineContent"
+
+export { 
+  Timeline, 
+  TimelineItem, 
+  TimelineIcon, 
+  TimelineContent, 
+  TimelineConnector, 
+  TimelineHeader, 
+  TimelineBody 
+}
