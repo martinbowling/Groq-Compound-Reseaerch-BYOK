@@ -61,7 +61,7 @@ export function ResearchResults({
 
   const renderLoadingState = () => (
     <div className="text-center py-16">
-      <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-[#9C27B0] mb-4"></div>
+      <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-[#E86A58] mb-4"></div>
       <h3 className="text-lg font-medium text-white mb-2">Generating Research</h3>
       <p className="text-gray-400 max-w-md mx-auto">
         Please wait while we analyze your query and generate a comprehensive research report.
@@ -79,7 +79,7 @@ export function ResearchResults({
           <Button 
             onClick={handleDownload} 
             variant="outline"
-            className="bg-[#333333] hover:bg-opacity-80 text-white border-[#666666]"
+            className="bg-[#333333] hover:bg-opacity-80 text-white border-[#444444] hover:border-[#E86A58]"
           >
             <Download className="h-4 w-4 mr-1" />
             Download
@@ -139,7 +139,7 @@ export function ResearchResults({
           <Button 
             onClick={handleDownload} 
             variant="outline"
-            className="bg-[#333333] hover:bg-opacity-80 text-white border-[#666666]"
+            className="bg-[#333333] hover:bg-opacity-80 text-white border-[#444444] hover:border-[#E86A58]"
           >
             <Download className="h-4 w-4 mr-1" />
             Download
@@ -167,13 +167,13 @@ export function ResearchResults({
     
     return (
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="bg-[#1E1E1E] rounded-t-lg border-b border-[#333333]">
+        <div className="bg-[#1A1A1A] rounded-t-lg border-b border-[#333333]">
           <TabsList className="bg-transparent h-auto p-0">
             <TabsTrigger 
               value="report" 
               className={`px-4 py-3 text-sm font-medium rounded-t-lg 
                 ${activeTab === 'report' 
-                  ? 'text-white bg-[#9C27B0]' 
+                  ? 'text-white bg-[#E86A58]' 
                   : 'text-gray-400 hover:text-white'}`}
             >
               Research Report
@@ -182,7 +182,7 @@ export function ResearchResults({
               value="qa" 
               className={`px-4 py-3 text-sm font-medium rounded-t-lg 
                 ${activeTab === 'qa' 
-                  ? 'text-white bg-[#9C27B0]' 
+                  ? 'text-white bg-[#E86A58]' 
                   : 'text-gray-400 hover:text-white'}`}
             >
               Questions & Answers
@@ -191,7 +191,7 @@ export function ResearchResults({
               value="markdown" 
               className={`px-4 py-3 text-sm font-medium rounded-t-lg 
                 ${activeTab === 'markdown' 
-                  ? 'text-white bg-[#9C27B0]' 
+                  ? 'text-white bg-[#E86A58]' 
                   : 'text-gray-400 hover:text-white'}`}
             >
               Raw Markdown
@@ -199,7 +199,7 @@ export function ResearchResults({
           </TabsList>
         </div>
         
-        <Card className="bg-[#1E1E1E] rounded-t-none rounded-b-lg border-t-0 border-[#333333] p-6">
+        <Card className="bg-[#1A1A1A] rounded-t-none rounded-b-lg border-t-0 border-[#333333] p-6">
           <TabsContent value="report" className="mt-0">
             {report ? renderReport() : renderLoadingState()}
           </TabsContent>

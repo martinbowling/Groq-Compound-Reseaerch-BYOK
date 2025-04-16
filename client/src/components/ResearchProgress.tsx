@@ -84,7 +84,6 @@ export function ResearchProgress({ progress, currentStep, progressPercentage }: 
           <Progress 
             value={progressPercentage} 
             className="h-2 mt-2 bg-[#333333]"
-            indicatorClassName="bg-[#E86A58]"
           />
         </div>
       </CardContent>
