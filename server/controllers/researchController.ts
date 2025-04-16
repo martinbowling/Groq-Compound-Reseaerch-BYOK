@@ -324,3 +324,75 @@ export const getResearchSteps = async (req: Request, res: Response) => {
     steps
   });
 };
+
+export const listResearchQueries = async (req: Request, res: Response) => {
+  try {
+    // Get query parameters for pagination
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
+    // Get all research queries with pagination
+    const queries = await storage.listResearchQueries(limit, offset);
+    const total = await storage.countResearchQueries();
+    
+    return res.status(200).json({
+      queries,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + queries.length < total
+      }
+    });
+  } catch (error) {
+    console.error('Error listing research queries:', error);
+    return res.status(500).json({ error: 'Failed to list research queries' });
+  }
+};
+
+export const getResearchReport = async (req: Request, res: Response) => {
+  try {
+    const { queryId } = req.params;
+    
+    // Get research query
+    const researchQuery = await storage.getResearchQuery(queryId);
+    if (!researchQuery) {
+      return res.status(404).json({ error: 'Research query not found' });
+    }
+    
+    // Get report step data
+    const steps = await storage.getResearchSteps(queryId);
+    
+    // Find report data from steps
+    const reportStep = steps.find(step => step.step === 'report');
+    if (!reportStep || !reportStep.data) {
+      return res.status(404).json({ error: 'Research report not found for this query' });
+    }
+    
+    // Get all the necessary data from various steps
+    const questionsStep = steps.find(step => step.step === 'questions');
+    const qaSteps = steps.filter(step => step.step === 'qa');
+    const outlineStep = steps.find(step => step.step === 'outline');
+    
+    // Compile the full research data
+    const fullReport = {
+      query: researchQuery.query,
+      title: researchQuery.title,
+      status: researchQuery.status,
+      createdAt: researchQuery.createdAt,
+      completedAt: researchQuery.completedAt,
+      questions: questionsStep?.data ? (questionsStep.data as any).questions || [] : [],
+      answers: qaSteps.map(step => ({
+        question: step.data ? (step.data as any).question : '',
+        answer: step.data ? (step.data as any).answer : ''
+      })),
+      outline: outlineStep?.data ? (outlineStep.data as any).outline || '' : '',
+      report: reportStep.data ? (reportStep.data as any).report || null : null
+    };
+    
+    return res.status(200).json(fullReport);
+  } catch (error) {
+    console.error('Error getting research report:', error);
+    return res.status(500).json({ error: 'Failed to get research report' });
+  }
+};

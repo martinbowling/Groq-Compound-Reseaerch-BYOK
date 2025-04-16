@@ -5,7 +5,7 @@ import {
   type ResearchStep, type InsertResearchStep
 } from "@shared/schema";
 import { db } from './db';
-import { eq } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -18,6 +18,8 @@ export interface IStorage {
   updateResearchQueryStatus(queryId: string, status: string): Promise<void>;
   updateResearchQueryTitle(queryId: string, title: string): Promise<void>;
   completeResearchQuery(queryId: string): Promise<void>;
+  listResearchQueries(limit: number, offset: number): Promise<ResearchQuery[]>;
+  countResearchQueries(): Promise<number>;
   
   addResearchStep(step: InsertResearchStep): Promise<ResearchStep>;
   getResearchSteps(queryId: string): Promise<ResearchStep[]>;
@@ -81,6 +83,21 @@ export class DbStorage implements IStorage {
 
   async getResearchSteps(queryId: string): Promise<ResearchStep[]> {
     return await db.select().from(researchSteps).where(eq(researchSteps.queryId, queryId));
+  }
+
+  async listResearchQueries(limit: number, offset: number): Promise<ResearchQuery[]> {
+    return await db.select()
+      .from(researchQueries)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(researchQueries.createdAt));
+  }
+
+  async countResearchQueries(): Promise<number> {
+    const result = await db.select({
+      count: sql`count(*)`
+    }).from(researchQueries);
+    return parseInt(result[0].count as string);
   }
 }
 
