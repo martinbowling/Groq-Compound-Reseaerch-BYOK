@@ -48,7 +48,7 @@ export class ResearchService extends EventEmitter {
       let qaContext = '';
       for (let i = 0; i < questions.length; i++) {
         this.emit('qa', { question: questions[i], answer: answers[i] });
-        qaContext += `Question: ${questions[i]}\nAnswer: ${answers[i]}\n\n`;
+        qaContext += `Q: ${questions[i]}\nA: ${answers[i]}\n\n`;
       }
       
       this.emit('progress', { 
