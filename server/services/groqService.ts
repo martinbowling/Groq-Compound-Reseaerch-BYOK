@@ -110,14 +110,22 @@ export class GroqService extends EventEmitter {
     );
   }
 
-  async processPrompt(prompt: string, modelType: 'compound' | 'llama' | 'combined'): Promise<string> {
-    if (modelType === 'combined') {
-      // For combined, we'll use Compound for more complex reasoning
-      return this.compoundQuestion(prompt);
-    } else if (modelType === 'compound') {
-      return this.compoundQuestion(prompt);
-    } else {
+  async processPrompt(prompt: string, modelType: 'compound' | 'llama' | 'combined', forceModel?: 'llama' | 'compound'): Promise<string> {
+    // If a specific model is forced (for hybrid approach), use that
+    if (forceModel === 'llama') {
       return this.llamaQuestion(prompt);
+    } else if (forceModel === 'compound') {
+      return this.compoundQuestion(prompt);
+    }
+    
+    // Otherwise use the model based on the general modelType
+    if (modelType === 'compound') {
+      return this.compoundQuestion(prompt);
+    } else if (modelType === 'llama') {
+      return this.llamaQuestion(prompt);
+    } else {
+      // For combined, we'll default to Compound unless specified differently
+      return this.compoundQuestion(prompt);
     }
   }
 }

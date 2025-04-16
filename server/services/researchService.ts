@@ -5,7 +5,7 @@ import { ModelType } from '@shared/types/research';
 
 export class ResearchService extends EventEmitter {
   private groqService: GroqService;
-  private modelType: ModelType;
+  private modelType: ModelType = 'combined'; // Default to combined
   
   constructor(apiKey: string) {
     super();
@@ -227,7 +227,8 @@ export class ResearchService extends EventEmitter {
   
   private async generateFollowUpQuestions(query: string): Promise<string[]> {
     const promptText = prompts.QUESTION_GENERATION_PROMPT.replace('{query}', query);
-    const response = await this.groqService.processPrompt(promptText, this.modelType);
+    // Use Llama 4 for generating follow-up questions
+    const response = await this.groqService.processPrompt(promptText, this.modelType, 'llama');
     
     // Parse the numbered list from the response
     const questions = response
@@ -247,7 +248,8 @@ export class ResearchService extends EventEmitter {
         .replace('{query}', query)
         .replace('{question}', question);
       
-      const answer = await this.groqService.processPrompt(promptText, this.modelType);
+      // Use Compound for answering questions with citations
+      const answer = await this.groqService.processPrompt(promptText, this.modelType, 'compound');
       answers.push(answer);
     }
     
@@ -259,7 +261,8 @@ export class ResearchService extends EventEmitter {
       .replace('{query}', query)
       .replace('{qa_context}', qaContext);
     
-    return this.groqService.processPrompt(promptText, this.modelType);
+    // Use Compound for gathering research data with citations
+    return this.groqService.processPrompt(promptText, this.modelType, 'compound');
   }
   
   private async generateReportTitle(query: string, researchData: string): Promise<string> {
@@ -267,7 +270,8 @@ export class ResearchService extends EventEmitter {
       .replace('{query}', query)
       .replace('{research_data}', this.truncateText(researchData, 2000));
     
-    return this.groqService.processPrompt(promptText, this.modelType);
+    // Use Llama 4 for title generation (better creative capabilities)
+    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
   }
   
   private async createResearchOutline(
@@ -282,7 +286,8 @@ export class ResearchService extends EventEmitter {
       .replace('{questions}', questions)
       .replace('{research_data}', this.truncateText(researchData, 2000));
     
-    return this.groqService.processPrompt(promptText, this.modelType);
+    // Use Llama 4 for outline creation (better at structured tasks)
+    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
   }
   
   private parseOutline(outline: string): { title: string, level: number }[] {
@@ -355,7 +360,8 @@ export class ResearchService extends EventEmitter {
       .replace('{research_data}', this.truncateText(researchData, 2000))
       .replace('{qa_context}', this.truncateText(qaContext, 1500));
     
-    return this.groqService.processPrompt(promptText, this.modelType);
+    // Use Llama 4 for generating coherent content
+    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
   }
   
   private async generateExecutiveSummary(query: string, reportContent: string): Promise<string> {
@@ -363,7 +369,8 @@ export class ResearchService extends EventEmitter {
       .replace('{query}', query)
       .replace('{report_content}', this.truncateText(reportContent, 3000));
     
-    return this.groqService.processPrompt(promptText, this.modelType);
+    // Use Llama 4 for summary generation
+    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
   }
   
   private async generateConclusion(query: string, reportContent: string): Promise<string> {
@@ -371,7 +378,8 @@ export class ResearchService extends EventEmitter {
       .replace('{query}', query)
       .replace('{report_content}', this.truncateText(reportContent, 3000));
     
-    return this.groqService.processPrompt(promptText, this.modelType);
+    // Use Llama 4 for conclusion generation
+    return this.groqService.processPrompt(promptText, this.modelType, 'llama');
   }
   
   // Utility to truncate text to avoid exceeding token limits
