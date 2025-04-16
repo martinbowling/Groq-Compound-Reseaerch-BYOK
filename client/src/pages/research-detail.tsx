@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Timeline, TimelineItem, TimelineConnector, TimelineHeader, TimelineIcon, TimelineBody } from "@/components/ui/timeline";
+import { Timeline, TimelineItem, TimelineConnector, TimelineHeader, TimelineIcon, TimelineBody } from "../components/ui/timeline";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { format } from "date-fns";
 import { ArrowLeft, AlertCircle, FileText, Check, Clock, XCircle, Loader2, Calendar, Info, RefreshCw, ExternalLink } from "lucide-react";
@@ -67,11 +67,11 @@ export default function ResearchDetail() {
   const getModelLabel = (modelType: ModelType) => {
     switch (modelType) {
       case 'combined':
-        return 'Combined (Compound + Llama 4)';
+        return 'Combined (Compound + Llama 3)';
       case 'compound':
         return 'Groq Compound (Mixtral 8x7B)';
       case 'llama':
-        return 'Llama 4 (70B)';
+        return 'Llama 3 (70B)';
       default:
         return modelType;
     }

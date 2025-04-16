@@ -51,7 +51,7 @@ export class GroqService extends EventEmitter {
   
   async chatCompletion(
     messages: GroqChatCompletionParams['messages'], 
-    model: string = 'llama-4-maverick',
+    model: string = 'llama3-70b-8192',
     temperature: number = 0.7,
     maxTokens: number = 4000
   ): Promise<string> {
@@ -110,7 +110,7 @@ export class GroqService extends EventEmitter {
         { role: 'system', content: 'You are a helpful research assistant.' },
         { role: 'user', content: question }
       ],
-      'llama-4-maverick',
+      'llama3-70b-8192',
       0.7,
       4000
     );
